@@ -69,6 +69,8 @@ O objetivo do sistema é automatizar a ingestão de normativas complexas e dicio
 
 ## Estrutura do Repositório
 
+A organização das pastas foi pensada para refletir a sequência lógica da solução: infraestrutura, dados, código, utilitários, testes e documentação. A convenção de prefixos ajuda a manter a navegabilidade do projeto e a leitura do pipeline em ordem.
+
 ```text
 fin-governance-rag-pipeline/
 │
@@ -76,62 +78,79 @@ fin-governance-rag-pipeline/
 │   └── workflows/
 │       └── ci.yml                     # Pipeline de CI (lint, type-check, testes)
 │
-├── airflow/                           # Infraestrutura e DAGs do Apache Airflow
-│   ├── dags/                          # Definições de pipelines agendados
-│   ├── plugins/                       # Extensões e hooks customizados
-│   ├── Dockerfile.airflow             # Imagem do Airflow (webserver/scheduler)
-│   └── requirements-airflow.txt       # Dependências específicas do Airflow
+├── a_airflow/                          # 01. Orquestração do pipeline
+│   ├── dags/                          # DAGs do Airflow
+│   ├── plugins/                       # Hooks e extensões customizadas
+│   ├── airflow.Dockerfile             # Imagem do Airflow
+│   └── requirements-airflow.txt       # Dependências do Airflow
 │
-├── docker/                            # Dockerfiles das imagens de aplicação
+├── b_docker/                           # 02. Infraestrutura de containers
 │   ├── api.Dockerfile                 # Imagem do microsserviço FastAPI
-│   └── spark.Dockerfile               # Imagem para jobs de spark-submit
+│   └── spark.Dockerfile               # Imagem para jobs PySpark
 │
-├── src/                               # Código-fonte modular do sistema
-│   ├── config/                        # Configurações e variáveis de ambiente (Pydantic Settings)
-│   ├── core/                          # Exceções, logging e utilidades transversais
-│   ├── security/                      # Guardrails, anti-prompt-injection e mascaramento de PII (OWASP LLM)
-│   ├── pipeline/                      # Transformações PySpark e pipelines ETL/ELT
-│   │   ├── bronze_to_silver/          # Limpeza, padronização e estruturação
-│   │   ├── silver_to_gold/            # Parsing, chunking semântico e cruzamento de schemas
-│   │   ├── transformations/           # Funções de transformação reutilizáveis
-│   │   └── schemas/                   # Contratos de dados (StructType / Pydantic)
-│   ├── ai/                            # Vector Store, Embeddings e Agente (LangGraph)
-│   │   ├── embeddings/                # Geração de embeddings (Gemini / OpenAI)
-│   │   ├── vectorstore/               # Cliente e repositório Qdrant
-│   │   ├── agents/                    # Grafo do agente (nodes, edges, state)
-│   │   ├── retrieval/                 # Estratégias de busca semântica
-│   │   └── prompts/                   # Prompts versionados
-│   └── api/                           # Servidor FastAPI
-│       └── routes/                    # Rotas/endpoints (v1/ask, v1/validate-schema)
+├── c_data/                             # 03. Dados do projeto
+│   ├── a_raw/                         # Bronzes / dados brutos
+│   └── b_processed/                  # Silver/Gold / dados processados
 │
-├── tests/                             # Testes automatizados (Pytest)
-│   ├── unit/
-│   └── integration/
+├── d_src/                              # 04. Código-fonte da aplicação
+│   ├── ai/                            # Módulo de IA, embeddings e RAG
+│   │   ├── agents/                    # Fluxos LangGraph / agentes
+│   │   ├── embeddings/               # Geração de embeddings
+│   │   ├── prompts/                  # Prompts versionados
+│   │   ├── retrieval/                # Busca semântica e recuperação
+│   │   └── vectorstore/               # Integração com Qdrant
+│   ├── api/                           # Camada de exposição REST
+│   │   └── routes/                   # Endpoints da API
+│   ├── config/                        # Configuração e settings
+│   ├── core/                          # Logging, utilidades e exceções
+│   ├── pipeline/                      # Transformações e ETL/ELT
+│   │   ├── bronze_to_silver/          # Limpeza e estruturação
+│   │   ├── silver_to_gold/            # Parsing, chunking e enriquecimento
+│   │   ├── schemas/                  # Contratos de dados
+│   │   └── transformations/          # Transformações reutilizáveis
+│   └── security/                      # Guardrails, PII e validações
 │
-├── data/                              # Diretório local de dados (ignorado no Git)
-│   ├── raw/                           # Camada Bronze (pouso dos dados brutos)
-│   └── processed/                     # Camadas Silver/Gold
+├── e_scripts/                          # 05. Scripts de apoio e automação
 │
-├── docs/                              # Documentação complementar (ADRs, diagramas)
-├── scripts/                           # Scripts utilitários (bootstrap, seed, etc.)
+├── f_tests/                            # 06. Validação automatizada
+│   ├── integration/
+│   └── unit/
 │
-├── requirements/                      # Dependências segmentadas por contexto
-│   ├── base.txt                       # Compartilhadas (Pydantic, dotenv, logging)
-│   ├── api.txt                        # FastAPI, LangChain/LangGraph, Qdrant client
-│   ├── pipeline.txt                   # PySpark, Delta Lake, parsers
-│   └── dev.txt                        # Lint, type-check e testes (ruff, mypy, pytest)
+├── g_docs/                             # 07. Documentação técnica e arquitetural
 │
-├── docker-compose.yml                 # Orquestração local dos serviços
-├── pyproject.toml                     # Metadados do projeto e configuração de ferramentas
-├── requirements.txt                   # Instalação agregada para desenvolvimento local
-├── Makefile                           # Atalhos de comandos de desenvolvimento
-├── .env.example                       # Modelo de variáveis de ambiente
-├── .gitignore
+├── z_requirements/                     # 08. Dependências por contexto
+│   ├── api.txt
+│   ├── base.txt
+│   ├── dev.txt
+│   └── pipeline.txt
+│
 ├── .dockerignore
-└── README.md                          # Documentação do projeto
+├── .env.example
+├── .gitignore
+├── docker-compose.yml                 # Orquestração local dos serviços
+├── Makefile                           # Atalhos de desenvolvimento
+├── pyproject.toml                     # Metadados e tooling do projeto
+├── requirements.txt                   # Instalação agregada local
+├── README.md                          # Documentação principal
+└── .github/                           # Fluxo de CI/CD
 ```
 
-> **Nota:** todos os arquivos de configuração acima (`pyproject.toml`, `Dockerfile`s, `docker-compose.yml`, `Makefile`, `requirements/*`, `.env.example`, `ci.yml`) já existem no repositório como *placeholders* vazios, reservando o lugar de cada peça da arquitetura. O conteúdo é preenchido de forma incremental conforme cada módulo é implementado.
+### Fluxo de execução do pipeline
+
+A ordem dos prefixos foi organizada para acompanhar a lógica de execução da solução:
+
+1. `a_airflow` orquestra a ingestão e o agendamento.
+2. `b_docker` prepara os ambientes de execução do projeto.
+3. `c_data` recebe os dados em bronze e os processa em camadas posteriores.
+4. `d_src` concentra o código de transformação, IA e APIs.
+5. `e_scripts` executa tarefas complementares de suporte.
+6. `f_tests` valida a qualidade e o comportamento da aplicação.
+7. `g_docs` guarda a documentação técnica e arquitetural.
+8. `z_requirements` atua como camada de dependências compartilhadas do projeto.
+
+> A convenção de prefixos funciona como uma guia de leitura e organização do repositório. O foco é facilitar a navegação e deixar explícito o ciclo de vida do dado e dos módulos da plataforma.
+
+> **Nota:** todos os arquivos de configuração principais (`pyproject.toml`, `Dockerfile`s, `docker-compose.yml`, `Makefile`, `requirements/*`, `.env.example`, `ci.yml`) continuam como pontos de infraestrutura e integração do projeto, sendo preenchidos de forma incremental conforme cada módulo é implementado.
 
 ---
 

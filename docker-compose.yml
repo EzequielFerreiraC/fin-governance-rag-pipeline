@@ -9,9 +9,9 @@ x-airflow-common: &airflow-common
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
   volumes:
-    - ./airflow/dags:/opt/airflow/dags
-    - ./airflow/logs:/opt/airflow/logs
-    - ./airflow/plugins:/opt/airflow/plugins
+    - ./a_airflow/dags:/opt/airflow/dags
+    - ./a_airflow/logs:/opt/airflow/logs
+    - ./a_airflow/plugins:/opt/airflow/plugins
   depends_on:
     postgres:
       condition: service_healthy
